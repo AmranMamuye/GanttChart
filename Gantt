@@ -1,0 +1,339 @@
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <vector>
+#include "gantt.h"
+
+
+
+#define OFFSET 50
+#define TABLE_OVERHEAD 6
+
+using namespace std;
+
+void Gantt::readInData(string inputFileName)
+{
+    //This member function will read in data from the input file that describes the project
+    //The format of this file should be evident from the example input.txt provided to you.
+
+    ifstream inFileObject("input.txt", ios::in);
+    string trash;
+
+    inFileObject >> trash >> projectName;  //Assume project name is a single string! 
+    inFileObject >> trash >> beginDate; 
+    inFileObject  >> trash >> durationInWeeks; 
+    inFileObject >> trash >> numberOfTeamMembers;
+    cout<<numberOfTeamMembers;
+
+//------------------ ADDITION NEEDED BY STUDENT -----------------------
+// Now that you know the numberOfTeamMembers you can read in data into the teamMembers vector
+// using a looping structure
+//    vector <string> teamMembers;
+    teamMembers.resize(numberOfTeamMembers);
+    for (int n=0; n<numberOfTeamMembers; n++)
+    {
+        inFileObject>>trash>>teamMembers[n];
+    }
+    
+//------------------ CHANGE NEEDED BY STUDENT -----------------------
+// This is the code using Task as a struct.  I would like you to 
+// change this to work with your new Task class. Note that you
+// might have to read into a temporary variable before using your
+// set and get functions.
+ 
+    inFileObject >> trash >> numTasks;
+
+    taskList.resize(numTasks);
+    int Tempo;
+    string TEMPO;
+    
+    for (int i = 0; i < numTasks; i++)
+    {
+       
+        
+        inFileObject >> trash >>Tempo;
+        taskList[i].SetTaskNum(Tempo);
+        inFileObject >> trash >> TEMPO;
+        taskList[i].SetTaskLeader(TEMPO);
+        inFileObject >> trash >> Tempo;
+        taskList[i].SetBeginOnDay(Tempo);
+        inFileObject >> trash >> Tempo;
+        taskList[i].SetTaskDuration(Tempo);
+        inFileObject >> trash;
+        getline(inFileObject,TEMPO);
+        taskList[i].SetTaskDescription(TEMPO);
+    }
+        
+//-----------------------------------------
+
+    inFileObject.close(); 
+};
+
+void Gantt::createHTMLFile(string outputFileName)
+{
+   //This function will create the output HTML file that will
+   //represent your Gantt Chart. You will need to make sure
+   //that you get all of these member functions working properly
+   //in this skeleton code.  I broke the tasks into subtask to 
+   //help make this member function easier to debug and understand.
+
+   //NOTE you may have to comment these out as you get each 
+   //one working!!! Remember the incremental design approach!
+
+    outFileName = outputFileName; //This will be used often
+
+    startHTMLfile();
+    insertHead();
+    beginBody();
+    ganttChartHeaderInfo();
+    chartColumnLabels();
+    ganttChartBody();
+    taskCharts();
+    endBody();
+    endHTMLfile();
+   
+}
+
+void Gantt::insertHead()
+{
+    ifstream inputFileObject("head.html", ios::in);
+    ofstream outputFileObject("gantChart.html", ios::app);
+    
+
+    //------------------ ADDITION NEEDED BY STUDENT -----------------------
+    //This member function will read in the file called
+    // head.html and put the contents into the output file
+    // that is being created. This should be a simple task
+    // so I would like for you to complete this.
+    // For all your html files, the header will also be the
+    // same. No need to change the html script, please just put this
+    // in your output html file! You may hard code in the name of 
+    // the head.html. Notethat this is one of the files that I 
+    // have provided to you in the tarfile
+    string TEMPO;
+    while(getline(inputFileObject, TEMPO, '\n'))
+    {
+        outputFileObject<<TEMPO<<endl;
+    }
+    
+    inputFileObject.close();
+    outputFileObject.close();
+}
+
+
+void Gantt::startHTMLfile()
+{
+    //You do not need to change this member function 
+
+    ofstream outputFileObject(outFileName.c_str(), ios::out);
+    outputFileObject << "<html>" << endl;
+    outputFileObject.close();
+}
+
+void Gantt::endHTMLfile()
+{
+   //You do not need to change this member function 
+
+    ofstream outputFileObject(outFileName.c_str(), ios::app);
+    outputFileObject << "</html>" << endl;
+    outputFileObject.close();
+}
+
+void Gantt::beginBody()
+{
+   //You do not need to change this member function 
+
+    ofstream outputFileObject(outFileName.c_str(), ios::app);
+    outputFileObject << "<body>" << endl;
+    outputFileObject.close();
+}
+
+void Gantt::endBody()
+{
+   //You do not need to change this member function 
+
+    ofstream outputFileObject(outFileName.c_str(), ios::app);
+    outputFileObject << "</body>" << endl;
+    outputFileObject.close();
+}
+
+void Gantt::ganttChartHeaderInfo()
+{
+
+    ofstream outputFileObject(outFileName.c_str(), ios::app);
+
+    //------------------ CHANGE NEEDED BY STUDENT -----------------------
+    // According to the specification of the lab the tableWidth should be numberofWeeks*210+50 to get good spacing
+
+    int tableWidth; //initialize this with the formula as specified above
+    tableWidth= durationInWeeks*210 +50;
+
+    outputFileObject << "<table style=\"width: " << tableWidth << "px\">" << endl;
+    outputFileObject << "<tr>"<<endl;
+    outputFileObject <<"<td colspan=\"2\"> Project Name: "<< projectName<<"   </td>"<<endl;
+    outputFileObject << "</tr>"<<endl;
+    outputFileObject << "<tr>"<<endl;
+    outputFileObject <<"<td colspan=\"2\"> Begin Date: "<< beginDate<<"   </td>"<<endl;
+    outputFileObject << "</tr>"<<endl;
+    outputFileObject << "<tr>"<<endl;
+    outputFileObject <<"<td colspan=\"2\"> Project Duration: "<< durationInWeeks<<" weeks </td>"<<endl;
+    outputFileObject << "</tr> \n <tr>"<<endl;
+    outputFileObject << "<tr>"<<endl;
+    outputFileObject <<"<td colspan=\"2\"> Team Members: ";
+    
+
+    for (int n = 0; n < numberOfTeamMembers; n++)
+    {
+        if (n==(numberOfTeamMembers -1))
+        {
+            
+            outputFileObject<<teamMembers[n]<<endl;
+        }
+        else
+        {
+            outputFileObject<<teamMembers[n]<<", ";
+        }
+    }
+    outputFileObject<<endl<<"   </td>"<<endl;
+    outputFileObject << "</tr>"<<endl;
+
+   //------------------ ADDITION NEEDED BY STUDENT -----------------------
+   //I got you started. You finish the rest to create the top of the html page
+   // Project Name: XXXX
+   // Begin Date:  XXXX
+   // Project Duration: XXXX
+   // Team Members: XXXX
+
+ 
+
+
+    outputFileObject.close();
+}
+
+void Gantt::chartColumnLabels()
+{
+   //This function will create the labels for the Gantt chart
+   // Some of this is a little tedious, but I will get you started.
+   // You may edit anything in the function if you feel it is necessary
+   
+    ofstream outputFileObject(outFileName.c_str(), ios::app);
+
+    int tableWidth = 210* durationInWeeks + OFFSET;
+   
+   outputFileObject << "<tr> \n\t <td style = \"height: 30px;\">\n </td>\n</tr>\n" << endl;
+
+   outputFileObject << "<tr> \n <td style=\"width: 50px; border: dotted 1px grey;\"> "
+                    << "<b> Task Label </b> </td> " << endl;
+
+   outputFileObject << "<td style=\"width:" << tableWidth-OFFSET+TABLE_OVERHEAD 
+    <<"px; vertical-align: bottom; border: dotted 1px grey;\">" << endl;
+ 
+   // The colspan needs to be the number of days each week 
+   // The width of the nested table needs to be numWeeks*210px
+   outputFileObject << "<table style=\"width: " << tableWidth-OFFSET+TABLE_OVERHEAD  
+                    << "px; border: dotted 1px grey;\">" << endl;
+   
+   //First the headers for the number of weeks in your project 
+   //For simplicity, assume that the number of weeks is ALWAYS a whole number
+   outputFileObject << "<tr>\n";
+
+   for (int i=1; i <= durationInWeeks; i++)
+   {
+      outputFileObject << "<td colspan=\"7\" style=\"text-align: center ; "
+                       << "width:210px; border: solid 1px black;\">"
+                       << "Week " << i << "</td>" << endl;
+   } 
+   outputFileObject << "</tr> \n";
+
+//------------------ ADDITION NEEDED BY STUDENT -----------------------
+// You will need to fill in the second part of this chart using
+// days of the week.  Please use the format in the example HTML
+// file (exampleGantt.html)  that I provided for you. You should easily
+// see the pattern that you will need to replicate. You will need to use a looping 
+// structure to complete.
+
+   outputFileObject << "<tr>" <<endl;
+   // Insert your code
+    string days[28] = {"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun","Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun","Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun","Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"};
+    for (int i=0; i<(durationInWeeks*7); i++)
+    {
+        if (i%2==1)
+            outputFileObject <<"<td class=\"day2\"><b>"<<days[i]<<"</b></td>"<<endl;
+        
+        else
+            outputFileObject <<"<td class=\"day\"><b>"<<days[i]<<"</b></td>"<<endl;
+    
+    }
+ 
+   outputFileObject << "</tr> \n";
+   outputFileObject << "</table> \n";
+
+   outputFileObject << "</td>\n";
+   outputFileObject << "</tr> \n";
+
+    outputFileObject.close();
+}
+
+void Gantt::ganttChartBody()
+{
+    ofstream outputFileObject(outFileName.c_str(), ios::app);
+
+//------------CHANGE NEEDED BY STUDENT-----
+// You will need to make this function work with your new Task Class.
+// Right now the struct has no encapsulation.
+
+   int i = 0;
+
+   for (i=0; i < numTasks ; i++)
+   {
+      outputFileObject << "<tr>\n";
+      outputFileObject <<"<td style=\"border:dotted 1px grey;\"> Task " << taskList[i].GetTaskNum() << "</td>" << endl;
+      outputFileObject <<"<td style=\"border: dotted 1px grey;\">" << endl;
+      outputFileObject << "<img src=\"dot_trans.gif\" height=\"15px;\" width=\""
+                       << 30*(taskList[i].GetBeginOnDay()-1) << "px;\">" << endl;
+
+      if (i%2 == 0) //then print gold
+      {
+         outputFileObject << "<img src=\"gold.png\" height=\"15px;\" width=\""
+                    << 30*taskList[i].GetTaskDuration() << "px;\">" << endl;
+      }
+      else
+      {
+         outputFileObject << "<img src=\"black.png\" height=\"15px;\" width=\""
+                    << 30*taskList[i].GetTaskDuration()<< "px;\">" << endl;
+      }
+
+      outputFileObject << "</td>"<<endl;
+       outputFileObject << "</tr>"<<endl;
+   }
+
+   outputFileObject.close();
+
+}
+
+
+void Gantt::taskCharts()
+{
+
+    ofstream outputFileObject(outFileName.c_str(), ios::app);
+
+    //------------------ ADDITION NEEDED BY STUDENT -----------------------
+    // You will need to complete this function yourself.  You need
+    // to create the lower table at the end of the html file.
+    // Please see the example html file (exampleGantt.html) to figure this out!!
+
+
+    // Please NOTE that This lower table has the same width as the top table
+
+    outputFileObject <<"<br> \n <br> \n <table style=\"width: 470px;\"> \n <tr> \n <td> Task <br> Label </td> \n <td> Task Leader </td> \n <td> Task Description </td> \n </tr>"<<endl;
+     for (int i=0; i < numTasks ; i++)
+     {
+         outputFileObject<<"<tr> \n <td> <b> Task "<< taskList[i].GetTaskNum()<<"</b> </td> \n <td> "<<taskList[i].GetTaskLeader()<<" </td> \n <td> "<< taskList[i].GetTaskDescription()<<" </td> \n </tr>"<<endl;
+     }
+
+    outputFileObject << "</table>" << endl;
+
+}
+
+
+
